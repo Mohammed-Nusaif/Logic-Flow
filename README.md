@@ -1,70 +1,219 @@
-# Getting Started with Create React App
+# Rule Engine with AST
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A **3-tier rule engine application** built using the **MERN stack** to determine user eligibility based on attributes like age, department, income, and spend. The system represents rules using an **Abstract Syntax Tree (AST)**, allowing dynamic creation, combination, and modification of rules.
 
-## Available Scripts
+## Table of Contents
+- [Overview](#overview)
+- [preview](#Preview)
+- [Features](#features)
+- [Data Structure](#data-structure)
+- [API Endpoints](#api-endpoints)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Example Rules](#example-rules)
+- [Contributing](#contributing)
+- [Dependencies](#Dependencies)
 
-In the project directory, you can run:
+## Overview
+This project implements a simple rule engine that evaluates user eligibility based on attributes like age, department, income, and spend. Rules are expressed using an **Abstract Syntax Tree (AST)**, which allows flexible manipulation of rules at runtime.
 
-### `npm start`
+## Preview
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Here’s a preview of the application:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+![App Screenshot](./assets/screenshot.png)
 
-### `npm test`
+Users can:
+- Create rules from strings that represent conditions.
+- Combine rules to create more complex eligibility criteria.
+- Evaluate a user's attributes against the combined rules to determine if they are eligible.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Features
+- **AST Representation**: Uses AST to represent conditional rules and dynamically create or modify them.
+- **Rule Evaluation**: Determines user eligibility based on defined rules.
+- **API Design**: RESTful API for creating, combining, and evaluating rules.
+- **Data Persistence**: Stores rule data and application metadata in MongoDB.
+- **Error Handling**: Validates and manages errors for invalid rule structures and data formats.
 
-### `npm run build`
+## Data Structure
+The AST is represented by the following data structure:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```json
+{
+  "type": "operator", // "operator" or "operand"
+  "value": "AND" | "OR" | <operator>, // the operation or condition
+  "left": <Node>, // reference to the left child (for operators)
+  "right": <Node>, // reference to the right child (for operators)
+  "value": <optional operand> // only for operand nodes (e.g., a comparison value)
+}
+```
+## API Endpoints
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**1. Create a Rule**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+``POST /api/rules``
 
-### `npm run eject`
+**Description:**  Takes a rule string and returns the AST representation.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**Payload:**
+``
+{
+  "rule_string": "age > 30 AND department = 'Sales'"
+}
+``
+**Response:**
+``
+{
+  "ast": {
+    "type": "operator",
+    "value": "AND",
+    "left": { "type": "operand", "value": { "attribute": "age", "operator": ">", "value": 30 } },
+    "right": { "type": "operand", "value": { "attribute": "department", "operator": "=", "value": "Sales" } }
+  }
+}
+``
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+**2. Combine Rules**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+``POST /api/rules/combine``
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+**Description:**  Combines multiple rules into a single AST.
 
-## Learn More
+**Payload:**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+``{
+  "rules": ["rule1_ast", "rule2_ast"]
+}``
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**Response:**
 
-### Code Splitting
+``{
+  "combined_ast": { ... }
+}
+``
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+**3. Evaluate Rule**
 
-### Analyzing the Bundle Size
+``POST /api/rules/evaluate``
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+**Description:** Evaluates a user's data against the given rule AST.
 
-### Making a Progressive Web App
+**Payload:**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+``{
+  "data": { "age": 35, "department": "Sales", "salary": 60000 },
+  "ast": { ... } // rule AST
+}``
 
-### Advanced Configuration
+**Response:**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+``{
+  "isEligible": true
+}``
 
-### Deployment
+## Installation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+**Clone the repository:**
 
-### `npm run build` fails to minify
+``git clone  https://github.com/Mohammed-Nusaif/Logic-Flow.git``
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+``cd logicflow``
+
+**Install backend dependencies:**
+
+``cd rul_engine_API``
+
+``npm install``
+
+**Install frontend dependencies:**
+
+``cd ../logicflow``
+
+``npm install``
+
+Setup MongoDB: Ensure you have MongoDB running. Configure the MongoDB connection string in rule_engine_API/config/config.js.
+
+**Run the application:**
+
+**Start the backend:**
+
+``cd rule_engine_API``
+
+``npm run start``
+
+**Start the frontend:**
+
+``cd ../logicflow``
+
+``npm start``
+## Usage
+
+**Example 1:**  Creating and Evaluating Rules
+
+_**Create a Rule:**_ Use the /api/rules endpoint to create a rule.
+
+_**Evaluate the Rule:**_ Post some user data to the /api/rules/evaluate endpoint to check if the user is eligible based on the rule.
+
+**Example 2:**  Combining Rules
+You can combine two or more rules to form a more complex decision tree.
+
+## Example Rules
+
+**Rule 1:**
+
+``"((age > 30 AND department = 'Sales') OR (age < 25 AND department = 'Marketing')) AND (salary > 50000 OR experience > 5)"``
+
+**Rule 2:**
+
+``"((age >= 40 AND experience >= 10) OR (department = 'Engineering' AND income >= 70000)) AND (spend < 5000)"``
+
+## Contributing
+
+Feel free to open issues and submit pull requests. For major changes, please open a discussion first to discuss what you would like to change.
+
+## Dependencies
+
+The following dependencies are used in this project:
+
+### Backend (Node.js/Express/MongoDB)
+- **Express**: Fast, unopinionated, minimalist web framework for Node.js.
+- **Mongoose**: Elegant MongoDB object modeling for Node.js.
+- **Cors**: Middleware to enable Cross-Origin Resource Sharing (CORS).
+- **Body-Parser**: Middleware to parse incoming request bodies in a middleware.
+
+### Frontend (React)
+- **React**: A JavaScript library for building user interfaces.
+- **React Router**: Declarative routing for React applications.
+- **Axios**: Promise-based HTTP client for making API requests.
+
+### Styling
+- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+
+### Dev Tools
+- **Nodemon**: A tool that automatically restarts the node application when file changes are detected.
+- **Concurrently**: Runs multiple commands concurrently.
+
+### Additional Utilities
+- **Dotenv**: Loads environment variables from a `.env` file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
